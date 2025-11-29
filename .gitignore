@@ -1,0 +1,7 @@
+# 不想提交的文件
+.idea/
+*.iml
+/*/target/
+*.log
+*.jar
+logs
