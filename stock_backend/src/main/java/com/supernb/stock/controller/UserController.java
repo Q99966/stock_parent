@@ -8,6 +8,8 @@ import com.supernb.stock.pojo.entity.SysUser;
 import com.supernb.stock.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 /*
  * 定义web层接口资源bean
  */
@@ -39,5 +41,14 @@ public class UserController {
     @PostMapping("/login")
     public R<LoginRespVo> login(@RequestBody LoginReqVo vo) {
         return userService.login(vo);
+    }
+
+    /**
+     * 生成登录校验码的访问接口
+     * @return
+     */
+    @GetMapping("/captcha")
+    public R<Map> getCaptchaCode(){
+        return userService.getCaptchaCode();
     }
 }

@@ -1,5 +1,6 @@
 package com.supernb.stock.config;
 
+import com.supernb.stock.utils.IdWorker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,4 +20,17 @@ public class CommonConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
+    /**
+     * 基于雪花算法的分布式SessionID生成器
+     * @return
+     */
+    @Bean
+    public IdWorker idWorker(){
+        /**
+         * 假定一号机器 ，三号机房
+         */
+        return new IdWorker(1L,3L);
+    }
+
 }

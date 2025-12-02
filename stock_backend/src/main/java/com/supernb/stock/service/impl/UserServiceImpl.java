@@ -1,16 +1,27 @@
 package com.supernb.stock.service.impl;
 
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.LineCaptcha;
 import com.supernb.stock.domain.vo.req.*;
 import com.supernb.stock.domain.vo.resp.*;
 import com.supernb.stock.mapper.SysUserMapper;
 import com.supernb.stock.pojo.entity.SysUser;
 import com.supernb.stock.service.UserService;
+import com.supernb.stock.utils.IdWorker;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Service("userService")
 public class UserServiceImpl implements UserService {
 
@@ -18,10 +29,14 @@ public class UserServiceImpl implements UserService {
     private SysUserMapper sysUserMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private IdWorker idWorker;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     public SysUser getUserByUserName(String userName) {
-        SysUser user = sysUserMapper.findByUserName(userName);
-        return user;
+        return sysUserMapper.findByUserName(userName);
     }
 
     @Override
@@ -46,5 +61,30 @@ public class UserServiceImpl implements UserService {
         LoginRespVo loginRespVo = new LoginRespVo();
         BeanUtils.copyProperties(dbUser,loginRespVo);
         return R.ok(loginRespVo);
+    }
+
+    @Override
+    public R<Map> getCaptchaCode() {
+        //1. 生成图片验证码
+        //参数分别是宽、高、验证码长度、干扰线数量
+        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(250, 40, 4, 5);
+        // 设置背景颜色
+        captcha.setBackground(Color.gray);
+        //获取校验码
+        String checkCode = captcha.getCode();
+        // 获取经过Base64编码后的图片
+        String base64Img = captcha.getImageBase64();
+        //2. 生成SessionID,并转换为String，避免前端精度丢失
+        String sessionId = String.valueOf(idWorker.nextId());
+        log.info("生成校验码:{}，生成的SessionID:{}",checkCode,sessionId);
+        //3.将sessionId作为key，验证码作为value，存入Redis，并设置过期时间为1分钟
+        // 增加业务前缀，方便运维时区分接口调用
+        redisTemplate.opsForValue().set("CK:" + sessionId,checkCode,1, TimeUnit.MINUTES);
+        //4.组装数据
+        Map<String,String> data = new HashMap<>();
+        data.put("imageData",base64Img);
+        data.put("sessionId",sessionId);
+        //5.相应数据
+        return R.ok(data);
     }
 }
