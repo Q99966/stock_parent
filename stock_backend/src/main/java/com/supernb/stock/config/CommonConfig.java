@@ -1,6 +1,8 @@
 package com.supernb.stock.config;
 
+import com.supernb.stock.pojo.vo.StockInfoConfig;
 import com.supernb.stock.utils.IdWorker;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * 定义公共配置类
  */
 @Configuration
+@EnableConfigurationProperties({StockInfoConfig.class}) // 加载相关配置类
 public class CommonConfig {
     /**
      * 密码加密器

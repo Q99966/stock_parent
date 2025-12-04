@@ -2,6 +2,7 @@ package com.supernb.stock.service.impl;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
+import com.supernb.stock.constant.StockConstant;
 import com.supernb.stock.domain.vo.req.*;
 import com.supernb.stock.domain.vo.resp.*;
 import com.supernb.stock.mapper.SysUserMapper;
@@ -47,6 +48,21 @@ public class UserServiceImpl implements UserService {
                 || StringUtils.isBlank(vo.getCode()) ) {
             return R.error(ResponseCode.DATA_ERROR);
         }
+        // 判断校验码是否为空
+        if(StringUtils.isBlank(vo.getSessionId())
+                || StringUtils.isBlank(vo.getCode())){
+            return R.error(ResponseCode.CHECK_CODE_ERROR);
+        }
+        // 验证校验码
+        String redisCode = (String) redisTemplate.opsForValue().get(StockConstant.CHECK_PREFIX + vo.getSessionId());
+        if(StringUtils.isBlank(redisCode)){
+            // 验证码过期
+            return R.error(ResponseCode.CHECK_CODE_TIMEOUT);
+        }
+        if(!redisCode.equalsIgnoreCase(vo.getCode())){
+            // 验证码错误
+            return R.error(ResponseCode.CHECK_CODE_ERROR);
+        }
         // 根据用户名查询用户密码的密文
         SysUser dbUser = sysUserMapper.findByUserName(vo.getUsername());
         if (dbUser == null) {
@@ -79,7 +95,7 @@ public class UserServiceImpl implements UserService {
         log.info("生成校验码:{}，生成的SessionID:{}",checkCode,sessionId);
         //3.将sessionId作为key，验证码作为value，存入Redis，并设置过期时间为1分钟
         // 增加业务前缀，方便运维时区分接口调用
-        redisTemplate.opsForValue().set("CK:" + sessionId,checkCode,1, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(StockConstant.CHECK_PREFIX + sessionId,checkCode,5, TimeUnit.MINUTES);
         //4.组装数据
         Map<String,String> data = new HashMap<>();
         data.put("imageData",base64Img);

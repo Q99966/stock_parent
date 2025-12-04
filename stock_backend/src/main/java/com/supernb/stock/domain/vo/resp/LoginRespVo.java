@@ -33,4 +33,6 @@ public class LoginRespVo {
      */
     private String nickName;
 
+
+
 }
