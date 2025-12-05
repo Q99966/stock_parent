@@ -1,11 +1,12 @@
 package com.supernb.stock.domain.vo.req;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
 * 登录请求vo
 * */
-
+@ApiModel(description = "登录请求vo")
 @Data
 public class LoginReqVo {
     /**

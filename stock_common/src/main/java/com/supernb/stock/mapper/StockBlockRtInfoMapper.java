@@ -1,6 +1,11 @@
 package com.supernb.stock.mapper;
 
+import com.supernb.stock.pojo.domain.StockBlockDomain;
 import com.supernb.stock.pojo.entity.StockBlockRtInfo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
+import java.util.List;
 
 /**
 * @author chenzhihan
@@ -22,4 +27,5 @@ public interface StockBlockRtInfoMapper {
 
     int updateByPrimaryKey(StockBlockRtInfo record);
 
+    List<StockBlockDomain> sectorAllLimit(@Param("lastDate") Date lastDate);
 }
