@@ -1,6 +1,12 @@
 package com.supernb.stock.mapper;
 
+import com.supernb.stock.pojo.domain.StockUpdownDomain;
 import com.supernb.stock.pojo.entity.StockRtInfo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
 * @author chenzhihan
@@ -22,4 +28,24 @@ public interface StockRtInfoMapper {
 
     int updateByPrimaryKey(StockRtInfo record);
 
+    /**
+     * 查询指定时间点下的股票数据集合
+     * @param curDate 当前时间
+     * @return
+     */
+    List<StockUpdownDomain> getStockInfoByTime(@Param("curDate") Date curDate);
+
+    /**
+     * 统计最新交易日下股票每分钟涨跌停的数量
+     * @param openTime 开盘时间
+     * @param curTime 当前时间
+     * @param flag 1-涨停 0-跌停
+     * @return
+     */
+    List<Map> getStockUpdownCount(@Param("openTime") Date openTime, @Param("curTime") Date curTime, @Param("flag") int flag);
+
+    /**
+     * 获取涨幅榜数据，取前4条
+     */
+    List<StockUpdownDomain> getStockLimitInfoByTime(@Param("curTime") Date curTime);
 }

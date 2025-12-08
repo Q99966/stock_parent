@@ -27,7 +27,7 @@
         from stock_block_rt_info
         where  id = #{id} 
     </select>
-    <select id="sectorAllLimit" resultType="com.supernb.stock.pojo.domain.StockBlockDomain">
+    <select id="getSectorAllLimit" resultType="com.supernb.stock.pojo.domain.StockBlockDomain">
         select
             company_num  as companyNum,
             trade_amount as tradeAmt,

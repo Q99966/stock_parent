@@ -27,5 +27,5 @@ public interface StockBlockRtInfoMapper {
 
     int updateByPrimaryKey(StockBlockRtInfo record);
 
-    List<StockBlockDomain> sectorAllLimit(@Param("lastDate") Date lastDate);
+    List<StockBlockDomain> getSectorAllLimit(@Param("lastDate") Date lastDate);
 }
