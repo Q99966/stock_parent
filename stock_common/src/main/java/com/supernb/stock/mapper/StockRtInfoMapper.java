@@ -1,5 +1,6 @@
 package com.supernb.stock.mapper;
 
+import com.supernb.stock.pojo.domain.Stock4MinuteDomain;
 import com.supernb.stock.pojo.domain.StockUpdownDomain;
 import com.supernb.stock.pojo.entity.StockRtInfo;
 import org.apache.ibatis.annotations.Param;
@@ -48,4 +49,20 @@ public interface StockRtInfoMapper {
      * 获取涨幅榜数据，取前4条
      */
     List<StockUpdownDomain> getStockLimitInfoByTime(@Param("curTime") Date curTime);
+
+    /**
+     * 统计指定时间点下股票在个涨跌区间的数量
+     * @param curDate
+     * @return
+     */
+    List<Map> getStockUpDownSectionByTime(@Param("dateTime") Date curDate);
+
+    /**
+     * 根据时间范围查询指定股票的交易流水
+     * @param code 股票code
+     * @param startTime 起始时间
+     * @param endTime 终止时间
+     * @return
+     */
+    List<Stock4MinuteDomain> getStockInfoByCodeAndDate(@Param("code") String code, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
 }
