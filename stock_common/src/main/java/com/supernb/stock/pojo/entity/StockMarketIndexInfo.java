@@ -5,6 +5,7 @@ import java.util.Date;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -13,6 +14,7 @@ import lombok.Data;
  */
 @ApiModel(description = "国内大盘数据详情表")
 @Data
+@Builder
 public class StockMarketIndexInfo {
     /**
      * 主键字段（无业务意义）

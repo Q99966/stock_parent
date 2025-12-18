@@ -125,6 +125,33 @@
         where	sri.stock_code=#{code}
           and sri.cur_time between #{startTime} and #{endTime}
     </select>
+    <select id="getStockInfo4EvrDay" resultType="com.supernb.stock.pojo.domain.Stock4EvrDayDomain">
+        select
+            sri2.cur_time as date,
+            sri2.trade_amount as tradeAmt,
+            sri2.stock_code as code,
+            sri2.min_price as lowPrice,
+            sri2.stock_name as name,
+            sri2.max_price as highPrice,
+            sri2.open_price as openPrice,
+            sri2.trade_volume as tradeVol,
+            sri2.cur_price as closePrice,
+            sri2.pre_close_price as preClosePrice
+        from
+            stock_rt_info as sri2
+        where sri2.stock_code=#{code}  and sri2.cur_time in (
+            select
+            max( sri.cur_time ) as closeDate
+            from
+            stock_rt_info as sri
+            where
+            sri.stock_code =#{code}
+          and sri.cur_time between #{startTime} and #{endTime}
+            group by
+            date_format( sri.cur_time, '%Y%m%d' )
+            )
+        order by sri2.cur_time;
+    </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
         delete from stock_rt_info
@@ -136,6 +163,16 @@
         min_price,max_price,trade_amount,trade_volume,cur_time)
         values (#{id},#{stockCode},#{stockName},#{preClosePrice},#{openPrice},#{curPrice},
         #{minPrice},#{maxPrice},#{tradeAmount},#{tradeVolume},#{curTime})
+    </insert>
+    <insert id="insertBatch">
+        insert into stock_rt_info
+        ( id,stock_code,stock_name,pre_close_price,open_price,cur_price,
+          min_price,max_price,trade_amount,trade_volume,cur_time)
+        values
+            <foreach collection="list" item="info" separator=",">
+                (#{info.id},#{info.stockCode},#{info.stockName},#{info.preClosePrice},#{info.openPrice},#{info.curPrice},
+                #{info.minPrice},#{info.maxPrice},#{info.tradeAmount},#{info.tradeVolume},#{info.curTime})
+            </foreach>
     </insert>
     <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.supernb.stock.pojo.entity.StockRtInfo" useGeneratedKeys="true">
         insert into stock_rt_info
@@ -166,6 +203,7 @@
                 <if test="curTime != null">#{curTime},</if>
         </trim>
     </insert>
+
     <update id="updateByPrimaryKeySelective" parameterType="com.supernb.stock.pojo.entity.StockRtInfo">
         update stock_rt_info
         <set>

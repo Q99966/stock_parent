@@ -11,10 +11,7 @@ import com.supernb.stock.mapper.StockBlockRtInfoMapper;
 import com.supernb.stock.mapper.StockBusinessMapper;
 import com.supernb.stock.mapper.StockMarketIndexInfoMapper;
 import com.supernb.stock.mapper.StockRtInfoMapper;
-import com.supernb.stock.pojo.domain.InnerMarketDomain;
-import com.supernb.stock.pojo.domain.Stock4MinuteDomain;
-import com.supernb.stock.pojo.domain.StockBlockDomain;
-import com.supernb.stock.pojo.domain.StockUpdownDomain;
+import com.supernb.stock.pojo.domain.*;
 import com.supernb.stock.pojo.vo.StockInfoConfig;
 import com.supernb.stock.service.StockService;
 import com.supernb.stock.utils.DateTimeUtil;
@@ -280,6 +277,28 @@ public class StockServiceImpl implements StockService {
 
         //3.返回响应数据
         return R.ok(list);
+    }
+    /**
+     * 单个个股日K 数据查询 ，可以根据时间区间查询数日的K线数据
+     * @param code 股票编码
+     */
+    @Override
+    public R<List<Stock4EvrDayDomain>> getDayKLinData(String code) {
+        //1.获取查询的日期范围
+        //1.1 获取截止时间
+        DateTime endDateTime = DateTimeUtil.getLastDate4Stock(DateTime.now());
+        Date endTime = endDateTime.toDate();
+        //TODO MOCKDATA
+        endTime=DateTime.parse("2022-01-07 15:00:00", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDate();
+        //1.2 获取开始时间
+        DateTime startDateTime = endDateTime.minusDays(10);
+        Date startTime = startDateTime.toDate();
+        //TODO MOCKDATA
+        startTime=DateTime.parse("2022-01-01 09:30:00", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDate();
+        //2.调用mapper接口获取查询的集合信息-方案1
+        List<Stock4EvrDayDomain> data= stockRtInfoMapper.getStockInfo4EvrDay(code,startTime,endTime);
+        //3.组装数据，响应
+        return R.ok(data);
     }
 
     /**

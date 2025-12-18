@@ -78,6 +78,16 @@
         values (#{id},#{marketCode},#{marketName},#{preClosePoint},#{openPoint},#{curPoint},
         #{minPoint},#{maxPoint},#{tradeAmount},#{tradeVolume},#{curTime})
     </insert>
+    <insert id="insertBatch">
+        insert into stock_market_index_info
+        ( id,market_code,market_name,pre_close_point,open_point,cur_point,
+        min_point,max_point,trade_amount,trade_volume,cur_time)
+        values
+            <foreach collection="infos" item="info" separator=",">
+                (#{info.id},#{info.marketCode},#{info.marketName},#{info.preClosePoint},#{info.openPoint},#{info.curPoint},
+                #{info.minPoint},#{info.maxPoint},#{info.tradeAmount},#{info.tradeVolume},#{info.curTime})
+            </foreach>
+    </insert>
     <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.supernb.stock.pojo.entity.StockMarketIndexInfo" useGeneratedKeys="true">
         insert into stock_market_index_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -107,6 +117,7 @@
                 <if test="curTime != null">#{curTime},</if>
         </trim>
     </insert>
+
     <update id="updateByPrimaryKeySelective" parameterType="com.supernb.stock.pojo.entity.StockMarketIndexInfo">
         update stock_market_index_info
         <set>

@@ -24,10 +24,18 @@ public class StockInfoConfig {
      */
     @ApiModelProperty("外盘ID集合")
     private List<String> outer;
-
     /**
-     * 股票涨幅区间
+     * 股票区间
      */
-    @ApiModelProperty("股票涨幅区间")
     private List<String> upDownRange;
+    /**
+     * 大盘参数获取url
+     */
+    @ApiModelProperty("大盘参数获取url")
+    private String marketUrl;
+    /**
+     * 板块参数获取url
+     */
+    @ApiModelProperty("板块参数获取url")
+    private String blockUrl;
 }

@@ -4,6 +4,7 @@ import com.supernb.stock.pojo.domain.InnerMarketDomain;
 import com.supernb.stock.pojo.entity.StockMarketIndexInfo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,4 +45,11 @@ public interface StockMarketIndexInfoMapper {
      * @return
      */
     List<Map> getSumAmtInfo(@Param("marketCodes") List<String> markedIds, @Param("startTime4T") Date startTime4T, @Param("endTime4T") Date endTime4T);
+
+    /**
+     * 批量插入大盘数据
+     * @param list 大盘实体对象集合
+     * @return
+     */
+    int insertBatch(@Param("infos") ArrayList<StockMarketIndexInfo> list);
 }

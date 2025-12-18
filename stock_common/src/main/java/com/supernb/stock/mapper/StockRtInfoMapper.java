@@ -1,5 +1,6 @@
 package com.supernb.stock.mapper;
 
+import com.supernb.stock.pojo.domain.Stock4EvrDayDomain;
 import com.supernb.stock.pojo.domain.Stock4MinuteDomain;
 import com.supernb.stock.pojo.domain.StockUpdownDomain;
 import com.supernb.stock.pojo.entity.StockRtInfo;
@@ -65,4 +66,21 @@ public interface StockRtInfoMapper {
      * @return
      */
     List<Stock4MinuteDomain> getStockInfoByCodeAndDate(@Param("code") String code, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
+    /**
+     * 查询指定日期范围内指定股票每天的交易数据
+     * @param code 股票code
+     * @param startTime 起始时间
+     * @param endTime 终止时间
+     * @return
+     */
+    List<Stock4EvrDayDomain> getStockInfo4EvrDay(@Param("code") String code,
+                                                 @Param("startTime") Date startTime,
+                                                 @Param("endTime") Date endTime);
+
+    /**
+     * 批量插入个股数据
+     * @param list 个股集合
+     * @return
+     */
+    int insertBatch(@Param("list") List list);
 }

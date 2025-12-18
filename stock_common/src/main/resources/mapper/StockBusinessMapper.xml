@@ -23,6 +23,9 @@
         from stock_business
         where  stock_code = #{stockCode} 
     </select>
+    <select id="getAllStockCodes" resultType="string">
+        select stock_code from stock_business
+    </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
         delete from stock_business

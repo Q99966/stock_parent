@@ -5,7 +5,10 @@ import java.util.Date;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 外盘详情信息表
@@ -13,6 +16,9 @@ import lombok.Data;
  */
 @ApiModel(description = "外盘详情信息表")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class StockOuterMarketIndexInfo {
     /**
      * 主键ID

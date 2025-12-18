@@ -2,10 +2,7 @@ package com.supernb.stock.controller;
 
 import com.supernb.stock.domain.vo.resp.PageResult;
 import com.supernb.stock.domain.vo.resp.R;
-import com.supernb.stock.pojo.domain.InnerMarketDomain;
-import com.supernb.stock.pojo.domain.Stock4MinuteDomain;
-import com.supernb.stock.pojo.domain.StockBlockDomain;
-import com.supernb.stock.pojo.domain.StockUpdownDomain;
+import com.supernb.stock.pojo.domain.*;
 import com.supernb.stock.service.StockService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -140,4 +137,13 @@ public class StockController {
         return stockService.stockScreenTimeSharing(code);
     }
 
+
+    /**
+     * 单个个股日K 数据查询 ，可以根据时间区间查询数日的K线数据
+     * @param code 股票编码
+     */
+    @RequestMapping("/stock/screen/dkline")
+    public R<List<Stock4EvrDayDomain>> getDayKLinData(@RequestParam("code") String code){
+        return stockService.getDayKLinData(code);
+    }
 }
