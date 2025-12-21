@@ -187,7 +187,7 @@ public class ParserStockInfoUtil {
      * @param stockStr
      * @return
      */
-    public List<StockBlockRtInfo> parse4StockBlock(String stockStr){
+    public List<StockBlockRtInfo> parser4StockBlock(String stockStr){
         if (Strings.isNullOrEmpty(stockStr)|| !stockStr.contains("=")){
             return Collections.emptyList();
         }

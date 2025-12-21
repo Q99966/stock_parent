@@ -1,6 +1,7 @@
 package com.supernb.stock.service.Impl;
 
 import com.google.common.collect.Lists;
+import com.supernb.stock.mapper.StockBlockRtInfoMapper;
 import com.supernb.stock.mapper.StockBusinessMapper;
 import com.supernb.stock.mapper.StockMarketIndexInfoMapper;
 import com.supernb.stock.mapper.StockRtInfoMapper;
@@ -14,6 +15,7 @@ import com.supernb.stock.utils.ParseType;
 import com.supernb.stock.utils.ParserStockInfoUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -56,6 +58,12 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
 
     @Autowired
     private StockRtInfoMapper stockRtInfoMapper;
+
+    @Autowired
+    private StockBlockRtInfoMapper stockBlockRtInfoMapper;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 必须保证对象无状态
@@ -144,18 +152,23 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
         }
        log.info("采集的当前大盘数据：{}",list);
         //批量入库
-        int count =  stockMarketIndexInfoMapper.insertBatch(list);
+//        int count =  stockMarketIndexInfoMapper.insertBatch(list);
+        int count = 2;
         if(count>0){
+            // 采集成功后通知backend刷新缓存
+            // 发送的日期数据是告知对方当前更新的股票数据所在时间点
+            rabbitTemplate.convertAndSend("stockExchange","inner.market",new Date());
             log.info("当前时间点：{}，大盘数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
         }else{
             log.error("当前时间点：{}，大盘数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
         }
     }
     /**
-     * 定义获取分钟级股票数据
+     * 获取国内个股数据
      */
     @Override
     public void getStockRtIndex() {
+        // 获取所有股票代码
         List<String> allStockCodes = stockBusinessMapper.getAllStockCodes();
         // 添加股票前缀
         allStockCodes = allStockCodes.stream().map(code->code.startsWith("6")?"sh"+code:"sz"+code).collect(Collectors.toList());
@@ -179,11 +192,40 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
             // 批量插入
             int count =  stockRtInfoMapper.insertBatch(list);
             if(count>0){
-                log.info("当前时间点：{}，大盘数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
+                log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
             }else{
-                log.error("当前时间点：{}，大盘数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
+                log.error("当前时间点：{}，个股数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
             }
         });
+    }
+    /**
+     * 获取板块数据
+     */
+    @Override
+    public void getStockBlockRInfo() {
+        // 获取大盘Url
+        String blockUrl = stockInfoConfig.getBlockUrl();
+        // 获取响应数据
+        ResponseEntity<String> responseEntity = restTemplate.exchange(blockUrl, HttpMethod.GET, httpEntity, String.class);
+        int statusCodeValue = responseEntity.getStatusCodeValue();
+        if (statusCodeValue != 200) {
+            //当前请求失败
+            log.error("当前时间点：{}，采集数据失败，http状态码：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"), statusCodeValue);
+            // 发送邮件给其他人员解决
+            return;
+        }
+        String jsData = responseEntity.getBody();
+        log.info("当前采集的板块数据：{}",jsData);
+        // 调用工具类进行数据解析
+        List list = parserStockInfoUtil.parser4StockBlock(jsData);
+        log.info("采集板块数据：{}",list);
+        // 批量插入
+        int count =  stockBlockRtInfoMapper.insertBatch(list);
+        if(count>0){
+            log.info("当前时间点：{}，板块数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
+        }else{
+            log.error("当前时间点：{}，板块数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
+        }
     }
 
     /**

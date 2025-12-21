@@ -2,6 +2,7 @@ package com.supernb.stock.service.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.supernb.stock.domain.vo.resp.PageResult;
@@ -45,6 +46,9 @@ public class StockServiceImpl implements StockService {
     @Autowired
     private StockRtInfoMapper stockRtInfoMapper;
 
+    @Autowired
+    private Cache<String,Object> caffeineCache;
+
     /**
      * 获取国内大盘最新数据
      * @return
@@ -53,16 +57,22 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public R<List<InnerMarketDomain>> getInnerMarketInfo() {
-        // 1.获取股票最新的交易时间点
-        Date curDate = DateTimeUtil.getLastDate4Stock(DateTime.now()).toDate();
-        // 假数据 等后续完成股票采集job工程，再将代码删除
-        curDate = DateTime.parse("2021-12-28 09:31:00", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDate();
-        // 2. 获取大盘编码集合
-        List<String> mCodes = stockInfoConfig.getInner();
-        // 3.调用mapper查询数据
-        List<InnerMarketDomain> data = stockMarketIndexInfoMapper.getMarketInfo(curDate,mCodes);
+        // 默认从本地缓存加载数据，如果没有则从数据库中加载，并载入缓存
+        // 在开盘周期内，一次缓存数据有效时长为一分钟
+        R<List<InnerMarketDomain>> result = (R<List<InnerMarketDomain>>) caffeineCache.get("innerMarketKey", key->{
+            // 1.获取股票最新的交易时间点
+            Date curDate = DateTimeUtil.getLastDate4Stock(DateTime.now()).toDate();
+            // 假数据 等后续完成股票采集job工程，再将代码删除
+            curDate = DateTime.parse("2021-12-28 09:31:00", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDate();
+            // 2. 获取大盘编码集合
+            List<String> mCodes = stockInfoConfig.getInner();
+            // 3.调用mapper查询数据
+            List<InnerMarketDomain> data = stockMarketIndexInfoMapper.getMarketInfo(curDate,mCodes);
+            // 4.封装并响应
+            return R.ok(data);
+        });
         // 4.封装并响应
-        return R.ok(data);
+        return result;
     }
 
     /**

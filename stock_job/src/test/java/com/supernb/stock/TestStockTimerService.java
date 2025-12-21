@@ -15,7 +15,8 @@ public class TestStockTimerService {
      */
     @Test
     public void test01(){
-//        stockTimerService.getInnerMarketInfo();
-        stockTimerService.getStockRtIndex();
+        stockTimerService.getInnerMarketInfo();
+//        stockTimerService.getStockRtIndex();
+//        stockTimerService.getStockBlockRInfo();
     }
 }    

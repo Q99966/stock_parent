@@ -28,4 +28,11 @@ public interface StockBlockRtInfoMapper {
     int updateByPrimaryKey(StockBlockRtInfo record);
 
     List<StockBlockDomain> getSectorAllLimit(@Param("lastDate") Date lastDate);
+
+    /**
+     * 批量插入大盘数据
+     * @param list 大盘集合
+     * @return
+     */
+    int insertBatch(@Param("list") List list);
 }

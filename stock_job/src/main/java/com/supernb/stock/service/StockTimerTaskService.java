@@ -9,7 +9,12 @@ public interface StockTimerTaskService {
      */
     void getInnerMarketInfo();
     /**
-     * 定义获取分钟级股票数据
+     * 获取国内个股数据
      */
     void getStockRtIndex();
+
+    /**
+     * 获取板块数据
+     */
+    void getStockBlockRInfo();
 } 
