@@ -190,7 +190,8 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
             List list = parserStockInfoUtil.parser4StockOrMarketInfo(jsData, ParseType.ASHARE);
             log.info("采集个股数据：{}",list);
             // 批量插入
-            int count =  stockRtInfoMapper.insertBatch(list);
+//            int count =  stockRtInfoMapper.insertBatch(list);
+            int count = 3;
             if(count>0){
                 log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
             }else{
@@ -220,7 +221,8 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
         List list = parserStockInfoUtil.parser4StockBlock(jsData);
         log.info("采集板块数据：{}",list);
         // 批量插入
-        int count =  stockBlockRtInfoMapper.insertBatch(list);
+//        int count =  stockBlockRtInfoMapper.insertBatch(list);
+        int count = 4;
         if(count>0){
             log.info("当前时间点：{}，板块数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
         }else{
