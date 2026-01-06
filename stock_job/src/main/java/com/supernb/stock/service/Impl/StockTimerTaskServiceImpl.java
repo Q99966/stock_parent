@@ -21,6 +21,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -64,6 +66,9 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     /**
      * 必须保证对象无状态
@@ -172,32 +177,90 @@ public class StockTimerTaskServiceImpl implements StockTimerTaskService {
         List<String> allStockCodes = stockBusinessMapper.getAllStockCodes();
         // 添加股票前缀
         allStockCodes = allStockCodes.stream().map(code->code.startsWith("6")?"sh"+code:"sz"+code).collect(Collectors.toList());
+        // 设置开始时间
+        long start = System.currentTimeMillis();
         // 将大集合分割成小集合，一个集合最多15个
         Lists.partition(allStockCodes,15).forEach(codes -> {
-            //拼接股票url地址
-            String stockUrl=stockInfoConfig.getMarketUrl()+String.join(",",codes);
-            //获取响应数据
-            ResponseEntity<String> responseEntity = restTemplate.exchange(stockUrl, HttpMethod.GET, httpEntity, String.class);
-            int statusCodeValue = responseEntity.getStatusCodeValue();
-            if (statusCodeValue != 200) {
-                //当前请求失败
-                log.error("当前时间点：{}，采集数据失败，http状态码：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"), statusCodeValue);
-                // 发送邮件给其他人员解决
-                return;
-            }
-            String jsData = responseEntity.getBody();
-            // 调用工具类进行数据解析
-            List list = parserStockInfoUtil.parser4StockOrMarketInfo(jsData, ParseType.ASHARE);
-            log.info("采集个股数据：{}",list);
-            // 批量插入
+            // 普通方案
+//            //拼接股票url地址
+//            String stockUrl=stockInfoConfig.getMarketUrl()+String.join(",",codes);
+//            //获取响应数据
+//            ResponseEntity<String> responseEntity = restTemplate.exchange(stockUrl, HttpMethod.GET, httpEntity, String.class);
+//            int statusCodeValue = responseEntity.getStatusCodeValue();
+//            if (statusCodeValue != 200) {
+//                //当前请求失败
+//                log.error("当前时间点：{}，采集数据失败，http状态码：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"), statusCodeValue);
+//                // 发送邮件给其他人员解决
+//                return;
+//            }
+//            String jsData = responseEntity.getBody();
+//            // 调用工具类进行数据解析
+//            List list = parserStockInfoUtil.parser4StockOrMarketInfo(jsData, ParseType.ASHARE);
+//            log.info("采集个股数据：{}",list);
+//            // 批量插入
 //            int count =  stockRtInfoMapper.insertBatch(list);
-            int count = 3;
-            if(count>0){
-                log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
-            }else{
-                log.error("当前时间点：{}，个股数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
-            }
+////                int count = list.size();
+//            if(count>0){
+//                log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
+//            }else{
+//                log.error("当前时间点：{}，个股数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
+//            }
+//             方案1：直接开线程
+//            new Thread(() -> {
+//                //拼接股票url地址
+//                String stockUrl=stockInfoConfig.getMarketUrl()+String.join(",",codes);
+//                //获取响应数据
+//                ResponseEntity<String> responseEntity = restTemplate.exchange(stockUrl, HttpMethod.GET, httpEntity, String.class);
+//                int statusCodeValue = responseEntity.getStatusCodeValue();
+//                if (statusCodeValue != 200) {
+//                    //当前请求失败
+//                    log.error("当前时间点：{}，采集数据失败，http状态码：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"), statusCodeValue);
+//                    // 发送邮件给其他人员解决
+//                    return;
+//                }
+//                String jsData = responseEntity.getBody();
+//                // 调用工具类进行数据解析
+//                List list = parserStockInfoUtil.parser4StockOrMarketInfo(jsData, ParseType.ASHARE);
+//                log.info("采集个股数据：{}",list);
+//                // 批量插入
+//                int count =  stockRtInfoMapper.insertBatch(list);
+////                int count = list.size();
+//                if(count>0){
+//                    log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
+//                }else{
+//                    log.error("当前时间点：{}，个股数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
+//                }
+//            }).start();
+
+            // 方案2：加入线程池
+            threadPoolTaskExecutor.execute(()->{
+                //拼接股票url地址
+                String stockUrl=stockInfoConfig.getMarketUrl()+String.join(",",codes);
+                //获取响应数据
+                ResponseEntity<String> responseEntity = restTemplate.exchange(stockUrl, HttpMethod.GET, httpEntity, String.class);
+                int statusCodeValue = responseEntity.getStatusCodeValue();
+                if (statusCodeValue != 200) {
+                    //当前请求失败
+                    log.error("当前时间点：{}，采集数据失败，http状态码：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"), statusCodeValue);
+                    // 发送邮件给其他人员解决
+                    return;
+                }
+                String jsData = responseEntity.getBody();
+                // 调用工具类进行数据解析
+                List list = parserStockInfoUtil.parser4StockOrMarketInfo(jsData, ParseType.ASHARE);
+                log.info("采集个股数据：{}",list);
+                // 批量插入
+                int count =  stockRtInfoMapper.insertBatch(list);
+//                int count = list.size();
+                if(count>0){
+                    log.info("当前时间点：{}，个股数据入库成功，入库条数：{}", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"),count);
+                }else{
+                    log.error("当前时间点：{}，个股数据入库失败", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
+                }
+            });
         });
+        long takeTime = System.currentTimeMillis() - start;
+        log.info("本次采集A股数据总耗时：{}毫秒",takeTime);
     }
     /**
      * 获取板块数据

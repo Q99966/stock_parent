@@ -164,6 +164,8 @@
         values (#{id},#{stockCode},#{stockName},#{preClosePrice},#{openPrice},#{curPrice},
         #{minPrice},#{maxPrice},#{tradeAmount},#{tradeVolume},#{curTime})
     </insert>
+
+
     <insert id="insertBatch">
         insert into stock_rt_info
         ( id,stock_code,stock_name,pre_close_price,open_price,cur_price,
@@ -173,6 +175,12 @@
                 (#{info.id},#{info.stockCode},#{info.stockName},#{info.preClosePrice},#{info.openPrice},#{info.curPrice},
                 #{info.minPrice},#{info.maxPrice},#{info.tradeAmount},#{info.tradeVolume},#{info.curTime})
             </foreach>
+--         ON DUPLICATE KEY UPDATE
+--         cur_price = VALUES(cur_price),
+--         min_price = VALUES(min_price),
+--         max_price = VALUES(max_price),
+--         trade_amount = VALUES(trade_amount),
+--         trade_volume = VALUES(trade_volume)
     </insert>
     <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.supernb.stock.pojo.entity.StockRtInfo" useGeneratedKeys="true">
         insert into stock_rt_info

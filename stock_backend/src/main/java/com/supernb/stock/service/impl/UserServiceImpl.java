@@ -35,11 +35,21 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    /**
+     * 通过用户名查询用户
+     * @param userName
+     * @return
+     */
     @Override
     public SysUser getUserByUserName(String userName) {
         return sysUserMapper.findByUserName(userName);
     }
 
+    /**
+     * 登录功能
+     * @param vo
+     * @return
+     */
     @Override
     public R<LoginRespVo> login(LoginReqVo vo) {
         // 判断参数是否异常
@@ -79,6 +89,10 @@ public class UserServiceImpl implements UserService {
         return R.ok(loginRespVo);
     }
 
+    /**
+     * 生存图片验证码功能
+     * @return
+     */
     @Override
     public R<Map> getCaptchaCode() {
         //1. 生成图片验证码

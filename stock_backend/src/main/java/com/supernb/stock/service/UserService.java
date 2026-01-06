@@ -15,7 +15,9 @@ public interface UserService {
     SysUser getUserByUserName(String userName);
 
     /**
-     * 登录
+     * 登录功能
+     * @param vo
+     * @return
      */
     R<LoginRespVo> login(LoginReqVo vo);
 
